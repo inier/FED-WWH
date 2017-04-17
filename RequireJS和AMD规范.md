@@ -169,6 +169,28 @@ define(('__proto__' in {} ? ['zepto'] : ['jquery']), function($) {
 
 上面代码定义了一个中间模块，该模块先判断浏览器是否支持**proto**属性（除了IE，其他浏览器都支持），如果返回true，就加载zepto库，否则加载jQuery库。
 
+#### （3）命名模块
+
+命名模块的定义方式如下：
+
+```
+define('name', ['module1', 'module2'], function(m1, m2){
+    var abc = function(param){
+        console.log(param);
+        // TODO
+    };
+    return {
+        sout:abc
+    }
+});
+```
+
+下面对这个定义做几点说明：
+
+- **‘name’**：当前模块的唯一标识。是一个字符串，是define方法的第一个参数。注意，最好是文件名和模块的唯一标识一样，不然会出现一些让然蛋疼的问题。。。文件名是什么就不说了。
+- **['module1', 'module2']**：此模块依赖的模块，define的第二个参数。可以没有，也可以有多个， 这个是一个数组， 顺序跟后面回调函数的参数一一对应。
+- **callback**：回调函数，define的第三个参数。这个模块不会阻塞，因为加载依赖模块需要时间，所有后面的回调函数会在依赖全部加载完才执行， m1对应module1， m2对应module2。函数体内部就是正常js函数的写法了，不过不在return里写的话，外部是调用不了的。
+
 ### require方法：调用模块
 
 require方法用于调用模块。它的参数与define方法类似。
@@ -434,31 +456,44 @@ node r.js -o build.js
 参数文件的主要成员解释如下：
 
 - **appDir**：项目目录，相对于参数文件的位置。应用程序的最顶层目录。可选的，如果设置了的话，r.js 会认为脚本在这个路径的子目录中，应用程序的文件都会被拷贝到输出目录（dir 定义的路径）。如果不设置，则使用下面的 baseUrl 路径。
-- **baseUrl**：js文件的位置。默认情况下，所有的模块都是相对于这个路径的。如果没有设置，则模块的加载是相对于 build 文件所在的目录。另外，如果设置了appDir，那么 baseUrl 应该定义为相对于 appDir 的路径。
+
+- **baseUrl**：js文件的根目录。默认情况下，所有的模块都是相对于这个路径的。如果没有设置，则模块的加载是相对于 build 文件所在的目录。另外，如果设置了appDir，那么 baseUrl 应该定义为相对于 appDir 的路径。
+
 - **dir**：输出目录。如果不设置，则默认为和 build 文件同级的 build 目录。
+
 - **modules**：定义要被优化的模块数组。一个包含对象的数组，每个对象就是一个要被优化的模块。常用的几个参数如下：
   - name：模块名；
   - create：如果不存在，是否创建。默认 false；
   - include：额外引入的模块，和 name 定义的模块一起压缩合并；
   - exclude：要排除的模块。有些模块有公共的依赖模块，在合并的时候每个都会压缩进去，例如一些基础库。使用 exclude 就可以把这些模块在压缩在一个更早之前加载的模块中，其它模块不用重复引入。
+
 - **fileExclusionRegExp**：要排除的文件的正则匹配的表达式。凡是匹配这个正则表达式的文件名，都不会被拷贝到输出目录。
+
 - **optimizeCss**：JavaScript 代码优化方式。可设置的值：
   - "uglify：使用 UglifyJS 压缩代码，默认值；
   - "uglify2"：使用 2.1.2+ 版本进行压缩；
   - "closure"： 使用 Google's Closure Compiler 进行压缩合并，需要 Java 环境；
   - "closure.keepLines"：使用 Closure Compiler 进行压缩合并并保留换行；
   - "none"：不做压缩合并；
+
 - **optimizeCss**：CSS 代码优化方式。可选的值有：
   - "standard"：标准的压缩方式；
   - "standard.keepLines"：保留换行；
   - "standard.keepComments"：保留注释；
   - "standard.keepComments.keepLines"：保留换行；
   - "none"：不压缩；
+
 - **removeCombined**：删除之前压缩合并的文件，默认值 false。如果为true，合并后的原文件将不保留在输出目录中。
+
 - **mainConfigFile**：如果不想重复定义的话，可以使用这个参数配置 RequireJS 的配置文件路径。
-- **paths**：各个模块的相对路径，可以省略js后缀名。
-- **shim**：配置依赖性关系。如果某一个模块不是AMD模式定义的，就可以用shim属性指定模块的依赖性关系和输出值。
+
 - **generateSourceMaps**：是否要生成source map文件。
+
+- **paths**：各个模块的相对路径，是一个对象，表示依赖的js以及别名，别名怎么写，你自己开心就好，不过鉴于规范，最好还是取得跟js本身的名字类似吧。。。可以省略js后缀名。
+
+- **shim**：配置依赖性关系。如果某一个模块不是AMD模式定义的，就可以用shim属性指定模块的依赖性关系和输出值。
+
+  > (AMD规范里定义了文件的依赖关系，详见define模块，但有些没有遵循这个规范，及没有定义依赖关系，所以我们这里需要手动定义依赖关系。)里面的deps是它所依赖的js文件，exports是输出的名字，具体可参考官网。
 
 更详细的解释可以参考[官方文档](https://github.com/jrburke/r.js/blob/master/build/example.build.js)。
 
@@ -496,3 +531,41 @@ node r.js -o build.js
 - Addy Osmani, [Writing Modular JavaScript With AMD, CommonJS & ES Harmony](http://addyosmani.com/writing-modular-js/)
 - Jim Cowart, [Five Helpful Tips When Using RequireJS](http://tech.pro/blog/1561/five-helpful-tips-when-using-requirejs)
 - Jim Cowart, [Using r.js to Optimize Your RequireJS Project](http://tech.pro/blog/1639/using-rjs-to-optimize-your-requirejs-project)
+
+
+
+### AMD & CMD
+
+AMD规范这么写：
+
+```
+require(['jquery', 'utils'], function($, util){
+    // TODO
+});
+```
+
+这里是官方给的例子，挺好的，但是我一直纠结的问题是，他这么写是不是就不建议我们一个js文件里只有一个require()方法呢？比如我的业务逻辑比较复杂，那该怎么写呢？
+
+CMD规范这么写：
+
+```
+var a = require('jquery');
+// TODO
+var b = require('util');
+// TODO
+```
+
+CMD规范是不支持异步加载的，那么这样就有问题了，就是文件还没下载下来的话，后面的代码是不会执行的，就是浏览器要等待，如果文件比较大，那么浏览器可能就有假死现象。
+
+AMD规范采用了这种方式来做异步。这个方式只是做异步的而已。一个页面完全可以写多个require()。比如这样：
+
+```
+require(['jquery'], function($){
+    // TODO
+    require(['utils'], function(util){
+        // TODO
+    })
+})
+```
+
+当你需要依赖某个js插件的时候，用这种方式去加载而已。仅仅是按需加载。
