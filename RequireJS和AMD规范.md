@@ -469,7 +469,7 @@ node r.js -o build.js
 
 - **fileExclusionRegExp**：要排除的文件的正则匹配的表达式。凡是匹配这个正则表达式的文件名，都不会被拷贝到输出目录。
 
-- **optimizeCss**：JavaScript 代码优化方式。可设置的值：
+- **optimize**：JavaScript 代码优化方式。可设置的值：
   - "uglify：使用 UglifyJS 压缩代码，默认值；
   - "uglify2"：使用 2.1.2+ 版本进行压缩；
   - "closure"： 使用 Google's Closure Compiler 进行压缩合并，需要 Java 环境；
